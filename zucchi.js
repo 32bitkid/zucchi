@@ -116,7 +116,8 @@
       given: given,
       use: function(newOptions) {
         options = extend({}, defaultOptions, newOptions); 
-      }
+      },
+      version: "0.0.1"
     };
   });
 })(this);
