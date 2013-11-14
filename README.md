@@ -10,6 +10,7 @@ var square = given(function(x) { return x * x; })
 	.when(function(fn) { return fn(1); }).then(function(actual) { actual.equals(1) })
 	// Short form
 	.when(2).then(4)
+	// Run the checks
 	.check();
 ```
 
@@ -23,6 +24,6 @@ zucchi.use({
 var given = zucchi.given;
 
 var square = given(function(x) { return x * x;  })
-	.when(function(fn) { return fn(5); } ).then(function(actual) { actual.to.equal(25); })
+	.when(function(fn) { return fn(5); } ).then(function(expect) { expect.to.equal(25); })
 	.check();
 ```
