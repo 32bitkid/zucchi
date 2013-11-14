@@ -24,6 +24,6 @@ zucchi.use({
 var given = zucchi.given;
 
 var square = given(function(x) { return x * x;  })
-	.when(function(fn) { return fn(5); } ).then(function(expect) { expect.to.equal(25); })
+	.when(5).then(function(expect) { expect.to.equal(25); })
 	.check();
 ```
