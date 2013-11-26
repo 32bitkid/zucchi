@@ -33,12 +33,12 @@
         
     return setArgs([]);
     
-    function collectArgs(args) {
+    function collectArgs(args, newArg) {
       var wasInvokedWithNoNewArgument = (arguments.length == 1); 
 
       if (!wasInvokedWithNoNewArgument) {
         args = Array.prototype.slice.call(args);
-        args.push(); 
+        args.push(newArg);
       }
       
       var hasAllArgs = (args.length == fnLength);
