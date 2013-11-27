@@ -1,6 +1,20 @@
 ;(function(ctx) {
   
-  var define = ctx.define || function(module) { ctx.zucchi = module(); };
+  var def = typeof(define) === "function"
+    ?  define
+    : typeof(module) !== "undefined"
+    ? function(m) { module.exports = m(); }
+    : function(m) { ctx.zucchi = m(); };
+  
+  var slice = Array.prototype.slice,
+      bind = Function.prototype.bind || function(that) {
+        var fn = this;
+        var args = slice.call(arguments, 1);
+        return function() {
+          return fn.apply(that, args.concat(slice.call(arguments)));
+        };
+      }
+  //var define = ctx.define || function(module) { ctx.zucchi = module(); };
   
   // Result Wrapper
   function DefaultActualWrapper(actual) {
@@ -8,8 +22,7 @@
   }
   
   DefaultActualWrapper.prototype.equals = function(expected) {
-    console.log("Checking " + this.actual + " == " + expected);
-    if(this.actual != expected) { throw "Expected " + expected + ", but got " + this.actual; }
+    if(this.actual != expected) { throw "FAILED: Expected " + expected + ", but got " + this.actual; }
   };
   
   // Helpers
@@ -28,8 +41,8 @@
   
   var curry = function(fn, invokeWhenComplete) {
     var fnLength = fn.length,
-        apply = Function.prototype.apply.bind(fn, undefined),
-        setArgs = Function.prototype.bind.bind(collectArgs, undefined);
+        apply = bind.call(Function.prototype.apply, fn, undefined),
+        setArgs = bind.call(bind, collectArgs, undefined);
         
     return setArgs([]);
     
@@ -111,7 +124,7 @@
     
   var options = defaultOptions;
   
-  define(function() {
+  def(function() {
     return {
       given: given,
       use: function(newOptions) {
