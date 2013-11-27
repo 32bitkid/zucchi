@@ -14,7 +14,6 @@
           return fn.apply(that, args.concat(slice.call(arguments)));
         };
       }
-  //var define = ctx.define || function(module) { ctx.zucchi = module(); };
   
   // Result Wrapper
   function DefaultActualWrapper(actual) {
