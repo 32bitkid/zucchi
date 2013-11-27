@@ -5,16 +5,58 @@
     : typeof(module) !== "undefined"
     ? function(m) { module.exports = m(); }
     : function(m) { ctx.zucchi = m(); };
-  
+
+
+  // Helpers
+
   var slice = Array.prototype.slice,
+
+      // Shim for Function.prototype.bind
       bind = Function.prototype.bind || function(that) {
         var fn = this;
         var args = slice.call(arguments, 1);
         return function() {
           return fn.apply(that, args.concat(slice.call(arguments)));
         };
-      }
-  
+      },
+
+      // Extend a given object with all the properties in passed-in object(s).
+      extend = function(obj) {
+        var sources = slice.call(arguments, 1);
+        for(var i=0,l=sources.length,source;i<l;i++) {
+          source = sources[i];
+          for(var prop in source) {
+            obj[prop] = source[prop];
+          }
+        }
+        return obj;
+      },
+
+      // Functional curry
+      curry = function(fn, invokeWhenComplete) {
+        var fnLength = fn.length,
+            apply = bind.call(Function.prototype.apply, fn, undefined),
+            setArgs = bind.call(bind, collectArgs, undefined);
+
+        return setArgs([]);
+
+        function collectArgs(args, newArg) {
+          var wasInvokedWithNoNewArgument = (arguments.length == 1);
+
+          if (!wasInvokedWithNoNewArgument) {
+            args = Array.prototype.slice.call(args);
+            args.push(newArg);
+          }
+
+          var hasAllArgs = (args.length == fnLength);
+          if (wasInvokedWithNoNewArgument || (invokeWhenComplete && hasAllArgs)) {
+            return apply(args);
+          } else {
+            return setArgs(args);
+          }
+        }
+      };
+
   // Result Wrapper
   function DefaultActualWrapper(actual) {
     this.actual = actual;
@@ -24,43 +66,6 @@
     if(this.actual != expected) { throw "FAILED: Expected " + expected + ", but got " + this.actual; }
   };
   
-  // Helpers
-  
-  // Extend a given object with all the properties in passed-in object(s).
-  var extend = function(obj) {
-    var sources = Array.prototype.slice.call(arguments, 1);
-    for(var i=0,l=sources.length,source;i<l;i++) {
-      source = sources[i];
-      for(var prop in source) {
-        obj[prop] = source[prop];
-      }
-    }
-    return obj;
-  };
-  
-  var curry = function(fn, invokeWhenComplete) {
-    var fnLength = fn.length,
-        apply = bind.call(Function.prototype.apply, fn, undefined),
-        setArgs = bind.call(bind, collectArgs, undefined);
-        
-    return setArgs([]);
-    
-    function collectArgs(args, newArg) {
-      var wasInvokedWithNoNewArgument = (arguments.length == 1); 
-
-      if (!wasInvokedWithNoNewArgument) {
-        args = Array.prototype.slice.call(args);
-        args.push(newArg);
-      }
-      
-      var hasAllArgs = (args.length == fnLength);
-      if (wasInvokedWithNoNewArgument || (invokeWhenComplete && hasAllArgs)) {
-        return apply(args);
-      } else {
-        return setArgs(args);
-      }
-    }
-  };
   
   var addAssertion = curry(function(wrapper, asserts, actual, expected) {
     var actualFn = actual,
@@ -77,7 +82,6 @@
     asserts.push({actual: actualFn, expected: expectedFn});
     
     return wrapper;
-    
   }, true);
   
   var given = function(fn) {
