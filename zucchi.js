@@ -112,27 +112,27 @@
     };
     
     wrapper.using = createUsing(addIt);
-    wrapper.when = createUsing(addIt)(undefined).when;
+    wrapper.when = createWhen(addIt(undefined));
     
     return wrapper; 
   };
   
   var createUsing = function(state) {
     return function(ctx) {
-      return { when: createWhen(state, ctx) };
+      return { when: createWhen(state(ctx)) };
     };
   };
   
-  var createWhen = function(state, ctx) {
+  var createWhen = function(state) {
     return function() {
-      return { then: createThen(state, ctx, arguments) };
+      return { then: createThen(state(arguments)) };
     };
   };
   
-  var createThen = function(state, ctx, actual) {
+  var createThen = function(state) {
     return function(expected) {
-      var result = state(ctx)(actual)(expected);
-      result.and = function(also) { return state(ctx)(actual)(also); }
+      var result = state(expected);
+      result.and = state
       return result;
     }
   }
