@@ -11,7 +11,7 @@ var square = given(function(x) { return x * x; })
 	// Short form
 	.when(2).then(4)
 	// Run the checks
-	.check();
+	.done();
 ```
 
 It is also configurable to use with other assertion frameworks like chai.js
@@ -25,5 +25,5 @@ var given = zucchi.given;
 
 var square = given(function(x) { return x * x;  })
 	.when(5).then(function(expect) { expect.to.equal(25); })
-	.check();
+	.done();
 ```
