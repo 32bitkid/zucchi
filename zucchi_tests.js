@@ -46,6 +46,23 @@ expect(function() {
   .done();
 }).not.to.throw();
 
+// failures should throw
+
+// basic usage
+expect(function() {
+  zucchi.given(square)
+  .when(1).then(2)
+  .done();
+}).to.throw();
+
+
+// basic usage
+expect(function() {
+  zucchi.given(square)
+  .when(1).then(function(expect) { expect.not.to.equal(1); })
+  .done();
+}).to.throw();
+
 // prototype test
 expect(function() {
   var Klass = function(val) { this.val = val; }
