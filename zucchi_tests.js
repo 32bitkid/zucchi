@@ -8,11 +8,11 @@ var square = function(x) { return x*x; };
 // Basic Grammar
 zucchi.given(zucchi.given)
   // support `when`
-  .when(function(fn) { return fn(square); })
+  .when(function(given) { return given(square); })
   .then(function(expect) { expect.itself.to.respondTo("when"); })
 
   // support `then`
-  .when(function(fn) { return fn(square).when(1); })
+  .when(function(given) { return given(square).when(1); })
   .then(function(expect) { expect.itself.to.respondTo("then"); })
 
   // `and` shouldn't be available if until it makes sense
@@ -31,22 +31,33 @@ zucchi.given(zucchi.given)
 
   .done();
 
-// square test
-zucchi.given(square)
-// squaring one
-.when(1).then(1)
-
-// squaring two
-.when(2)
-.then(function(e) { e.is.greaterThan(3) })
-.and(function(e) { e.is.lessThan(5); })
-
-.done();
+// basic usage
+expect(function() {
+  zucchi.given(square)
+  
+  // squaring one
+  .when(1).then(1)
+  
+  // squaring two
+  .when(2)
+  .then(function(e) { e.is.greaterThan(3) })
+  .and(function(e) { e.is.lessThan(5); })
+  
+  .done();
+}).not.to.throw();
 
 // prototype test
-var Klass = function(val) { this.val = val; }
-Klass.prototype.square = zucchi.given(function() { return this.val*this.val; })
-.using(function() { return { val:2 }; })
-.when().then(4)
-.done();
+expect(function() {
+  var Klass = function(val) { this.val = val; }
+  Klass.prototype.square = zucchi.given(function() { return this.val*this.val; })
+  .using(function() { return { val:2 }; })
+  .when().then(4)
+  .done();
+}).not.to.throw();
 
+// multiple args
+expect(function() {
+  zucchi.given(function(x,y) { return x + y; })
+  .when(1,2).then(3)
+  .done();
+}).not.to.throw();

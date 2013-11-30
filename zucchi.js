@@ -68,12 +68,14 @@
   
   
   var addAssertion = curry(function(wrapper, asserts, ctx, actual, expected) {
-    var actualFn = actual,
+    var actualFn,
         expectedFn = expected,
         ctxFn = ctx;
     
-    if(typeof actual !== "function") {
-      actualFn = function(fn) { return fn(actual); };
+    if(actual.length == 1 && typeof actual[0] == "function") {
+      actualFn = actual[0];
+    } else {
+      actualFn = function(fn) { return fn.apply(this, actual); }
     }
     
     if(typeof expected !== "function") {
@@ -122,8 +124,8 @@
   };
   
   var createWhen = function(state, ctx) {
-    return function(actual) {
-      return { then: createThen(state, ctx, actual) };
+    return function() {
+      return { then: createThen(state, ctx, arguments) };
     };
   };
   
