@@ -93,7 +93,7 @@
     
     var addIt = addAssertion(wrapper)(steps);
     
-    wrapper.check = function() {
+    wrapper.done = function() {
       for(var i=0,l=steps.length;i<l;i++) {
         var step = steps[i];
         var actual = step.actual(fn);
