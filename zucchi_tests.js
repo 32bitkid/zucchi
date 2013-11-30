@@ -32,14 +32,14 @@ zucchi.given(zucchi.given)
   .done();
 
 // square test
-zucchi
-.given(square)
-
+zucchi.given(square)
+// squaring one
 .when(1).then(1)
 
+// squaring two
 .when(2)
-.then(4)
-.and(function(e) { e.to.equal(4); })
+.then(function(e) { e.is.greaterThan(3) })
+.and(function(e) { e.is.lessThan(5); })
 
 .done();
 
@@ -49,3 +49,4 @@ Klass.prototype.square = zucchi.given(function() { return this.val*this.val; })
 .using(function() { return { val:2 }; })
 .when().then(4)
 .done();
+
