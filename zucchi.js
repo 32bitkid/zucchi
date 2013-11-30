@@ -103,13 +103,24 @@
       return fn;
     };
     
-    wrapper.when = function(it) {
-      return { then: addIt(it) };
-    };
+    wrapper.when = createWhen(addIt);
     
     return wrapper; 
   };
   
+  var createWhen = function(state) {
+    return function(actual) {
+      return { then: createThen(state, actual) };
+    };
+  };
+  
+  var createThen = function(state, actual) {
+    return function(expected) {
+      var result = state(actual)(expected);
+      result.and = function(also) { return state(actual)(also); }
+      return result;
+    }
+  }
   
   // Defaults
   function defaultPrepare(actual) {
