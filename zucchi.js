@@ -67,9 +67,10 @@
   };
   
   
-  var addAssertion = curry(function(wrapper, asserts, actual, expected) {
+  var addAssertion = curry(function(wrapper, asserts, ctx, actual, expected) {
     var actualFn = actual,
-        expectedFn = expected;
+        expectedFn = expected,
+        ctxFn = ctx;
     
     if(typeof actual !== "function") {
       actualFn = function(fn) { return fn(actual); };
@@ -79,7 +80,7 @@
       expectedFn = function(actual) { options.simpleThen(actual, expected); };
     }
     
-    asserts.push({actual: actualFn, expected: expectedFn});
+    asserts.push({actual: actualFn, expected: expectedFn, ctx: ctxFn});
     
     return wrapper;
   }, true);
@@ -95,29 +96,41 @@
     
     wrapper.done = function() {
       for(var i=0,l=steps.length;i<l;i++) {
-        var step = steps[i];
-        var actual = step.actual(fn);
+      
+        var stepFn = fn,
+            step = steps[i];
+        
+        if(step.ctx) stepFn = bind.call(fn, step.ctx());
+
+        var actual = step.actual(stepFn);
         step.expected(options.prepare(actual));
       }
       
       return fn;
     };
     
-    wrapper.when = createWhen(addIt);
+    wrapper.using = createUsing(addIt);
+    wrapper.when = createUsing(addIt)(undefined).when;
     
     return wrapper; 
   };
   
-  var createWhen = function(state) {
-    return function(actual) {
-      return { then: createThen(state, actual) };
+  var createUsing = function(state) {
+    return function(ctx) {
+      return { when: createWhen(state, ctx) };
     };
   };
   
-  var createThen = function(state, actual) {
+  var createWhen = function(state, ctx) {
+    return function(actual) {
+      return { then: createThen(state, ctx, actual) };
+    };
+  };
+  
+  var createThen = function(state, ctx, actual) {
     return function(expected) {
-      var result = state(actual)(expected);
-      result.and = function(also) { return state(actual)(also); }
+      var result = state(ctx)(actual)(expected);
+      result.and = function(also) { return state(ctx)(actual)(also); }
       return result;
     }
   }
