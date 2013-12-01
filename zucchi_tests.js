@@ -78,3 +78,13 @@ expect(function() {
   .when(1,2).then(3)
   .done();
 }).not.to.throw();
+
+// using should establish context for `when` and `then`
+expect(function() {
+  var ctx = {};
+  zucchi.given(function() {})
+  .using(function() { return ctx; })
+  .when(function() { expect(this).to.equal(ctx); })
+  .then(function() { expect(this).to.equal(ctx); })
+  .done();
+}).not.to.throw();

@@ -100,12 +100,16 @@
       for(var i=0,l=steps.length;i<l;i++) {
       
         var stepFn = fn,
-            step = steps[i];
+            step = steps[i],
+            context = undefined;
         
-        if(step.ctx) stepFn = bind.call(fn, step.ctx());
+        if(step.ctx) {
+          context = step.ctx()
+          stepFn = bind.call(fn, context);
+        }
 
-        var actual = step.actual(stepFn);
-        step.expected(options.prepare(actual));
+        var actual = step.actual.call(context, stepFn);
+        step.expected.call(context, options.prepare(actual));
       }
       
       return fn;
