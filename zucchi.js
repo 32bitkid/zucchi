@@ -10,7 +10,7 @@
   // Helpers
 
   var slice = Array.prototype.slice,
-
+      
       // Shim for Function.prototype.bind
       bind = Function.prototype.bind || function(that) {
         var fn = this;
@@ -20,15 +20,20 @@
         };
       },
 
+      forEach = bind.call(Function.prototype.call, Array.prototype.forEach || function(eachFn, ctx) {
+        ctx = ctx || this
+        for(var i=0,l=this.length;i<l;i++) {
+          eachFn.call(ctx, this[i], i, this);
+        }
+      }),      
+      
       // Extend a given object with all the properties in passed-in object(s).
       extend = function(obj) {
-        var sources = slice.call(arguments, 1);
-        for(var i=0,l=sources.length,source;i<l;i++) {
-          source = sources[i];
+        forEach(slice.call(arguments, 1), function(source) {
           for(var prop in source) {
             obj[prop] = source[prop];
           }
-        }
+        });
         return obj;
       },
 
@@ -97,10 +102,8 @@
     var addIt = addAssertion(wrapper)(steps);
     
     wrapper.done = function() {
-      for(var i=0,l=steps.length;i<l;i++) {
-      
+      forEach(steps, function(step) {
         var stepFn = fn,
-            step = steps[i],
             context = undefined;
         
         if(step.ctx) {
@@ -110,7 +113,7 @@
 
         var actual = step.actual.call(context, stepFn);
         step.expected.call(context, options.prepare(actual));
-      }
+      });
       
       return fn;
     };
