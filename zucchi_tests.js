@@ -1,7 +1,7 @@
 var zucchi = require('./zucchi.js'),
     expect = require('chai').expect;
 
-zucchi.use({ prepare: function(result) { return expect(result); } });
+zucchi.use({prepare: function(result) { return expect(result); } });
 
 var square = function(x) { return x*x; };
 

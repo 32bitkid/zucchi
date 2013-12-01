@@ -102,7 +102,7 @@
     var addIt = addAssertion(wrapper)(steps);
     
     wrapper.done = function() {
-      forEach(steps, function(step) {
+      var eachStep = function(step) {
         var stepFn = fn,
             context = undefined;
         
@@ -113,7 +113,11 @@
 
         var actual = step.actual.call(context, stepFn);
         step.expected.call(context, options.prepare(actual));
-      });
+      };
+      
+      options.before.call();
+      forEach(steps, options.each(eachStep));
+      options.after.call();
       
       return fn;
     };
@@ -144,28 +148,58 @@
     }
   }
   
-  // Defaults
-  function defaultPrepare(actual) {
-    return new DefaultActualWrapper(actual);
-  }
-  
-  function defaultSimpleThen(actual, expected) {
-    actual.equals(expected);
-  }
-  
+    
   var defaultOptions = {
-      prepare: defaultPrepare,
-      simpleThen: defaultSimpleThen
+    // Defaults
+    prepare: function(actual) { return new DefaultActualWrapper(actual); },
+    simpleThen: function(actual, expected) { actual.equals(expected); },
+    each: function (testcase) { return testcase; },
+    before: function() { /* noop */ },
+    after: function() { /* noop */ }
+  };
+  
+  var createSession = (function() {
+    
+    var each = function(testcase) {
+      var session = this;
+      return function() {
+        try {
+          testcase.apply(this, arguments);
+          session.passed++;
+        } catch(ex) {
+          session.failed.push(ex);
+        }
+        session.total++;
+      };
     };
     
+    var Session = function() {
+      this.total = 0;
+      this.passed = 0;
+      this.failed = [];
+    };
+    
+    Session.prototype.use = function() {
+      return { each: bind(each, this) }
+    }
+    
+    Session.prototype.results = function() { /*noop*/ };
+    
+    return function() {
+      return new Session();
+    }
+  })();
+  
+  
   var options = defaultOptions;
   
   def(function() {
     return {
       given: given,
-      use: function(newOptions) {
-        options = extend({}, defaultOptions, newOptions); 
+      use: function() {
+        options = extend.apply(undefined, [{}, defaultOptions].concat(slice.call(arguments))); 
       },
+      createSession: createSession,
       version: "0.0.1"
     };
   });
