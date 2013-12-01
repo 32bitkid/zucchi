@@ -33,7 +33,7 @@
       },
 
       // Functional curry
-      curry = function(fn, invokeWhenComplete) {
+      curry = function(fn, forever) {
         var fnLength = fn.length,
             apply = bind.call(Function.prototype.apply, fn, undefined),
             setArgs = bind.call(bind, collectArgs, undefined);
@@ -49,7 +49,7 @@
           }
 
           var hasAllArgs = (args.length == fnLength);
-          if (wasInvokedWithNoNewArgument || (invokeWhenComplete && hasAllArgs)) {
+          if (wasInvokedWithNoNewArgument || (!forever && hasAllArgs)) {
             return apply(args);
           } else {
             return setArgs(args);
@@ -85,7 +85,7 @@
     asserts.push({actual: actualFn, expected: expectedFn, ctx: ctxFn});
     
     return wrapper;
-  }, true);
+  });
   
   var given = function(fn) {
     var steps = [];
@@ -100,12 +100,16 @@
       for(var i=0,l=steps.length;i<l;i++) {
       
         var stepFn = fn,
-            step = steps[i];
+            step = steps[i],
+            context = undefined;
         
-        if(step.ctx) stepFn = bind.call(fn, step.ctx());
+        if(step.ctx) {
+          context = step.ctx()
+          stepFn = bind.call(fn, context);
+        }
 
-        var actual = step.actual(stepFn);
-        step.expected(options.prepare(actual));
+        var actual = step.actual.call(context, stepFn);
+        step.expected.call(context, options.prepare(actual));
       }
       
       return fn;
