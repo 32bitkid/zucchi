@@ -99,7 +99,7 @@
       return fn.apply(this, arguments);
     };
     
-    var addIt = addAssertion(wrapper)(steps);
+    var state = addAssertion(wrapper)(steps);
     
     wrapper.done = function() {
       var eachStep = function(step) {
@@ -122,8 +122,8 @@
       return fn;
     };
     
-    wrapper.using = createUsing(addIt);
-    wrapper.when = createWhen(addIt(undefined));
+    wrapper.using = createUsing(state);
+    wrapper.when = createWhen(state(undefined));
     
     return wrapper; 
   };
