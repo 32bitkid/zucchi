@@ -1,9 +1,7 @@
 ;(function(ctx) {
   
-  var def = typeof(define) === "function"
-    ?  define
-    : typeof(module) !== "undefined"
-    ? function(m) { module.exports = m(); }
+  var def = typeof(define) === "function" ? define
+    : typeof(module) !== "undefined" ? function(m) { module.exports = m(); }
     : function(m) { ctx.zucchi = m(); };
 
 
@@ -21,7 +19,7 @@
       },
 
       forEach = bind.call(Function.prototype.call, Array.prototype.forEach || function(eachFn, ctx) {
-        ctx = ctx || this
+        ctx = ctx || this;
         for(var i=0,l=this.length;i<l;i++) {
           eachFn.call(ctx, this[i], i, this);
         }
@@ -80,7 +78,7 @@
     if(actual.length == 1 && typeof actual[0] == "function") {
       actualFn = actual[0];
     } else {
-      actualFn = function(fn) { return fn.apply(this, actual); }
+      actualFn = function(fn) { return fn.apply(this, actual); };
     }
     
     if(typeof expected !== "function") {
@@ -103,11 +101,10 @@
     
     wrapper.done = function() {
       var eachStep = function(step) {
-        var stepFn = fn,
-            context = undefined;
+        var stepFn = fn, context;
         
         if(step.ctx) {
-          context = step.ctx()
+          context = step.ctx();
           stepFn = bind.call(fn, context);
         }
 
@@ -124,6 +121,7 @@
     
     wrapper.using = createUsing(state);
     wrapper.when = createWhen(state(undefined));
+    wrapper.suppose = function() { return wrapper; };
     
     return wrapper; 
   };
@@ -143,12 +141,11 @@
   var createThen = function(state) {
     return function(expected) {
       var result = state(expected);
-      result.and = state
+      result.and = state;
       return result;
-    }
-  }
+    };
+  };
   
-    
   var defaultOptions = {
     // Defaults
     prepare: function(actual) { return new DefaultActualWrapper(actual); },
@@ -180,14 +177,14 @@
     };
     
     Session.prototype.use = function() {
-      return { each: bind(each, this) }
-    }
+      return { each: bind(each, this) };
+    };
     
     Session.prototype.results = function() { /*noop*/ };
     
     return function() {
       return new Session();
-    }
+    };
   })();
   
   

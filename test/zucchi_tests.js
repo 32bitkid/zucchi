@@ -1,4 +1,4 @@
-var zucchi = require('./zucchi.js'),
+var zucchi = require('../zucchi.js'),
     expect = require('chai').expect;
 
 zucchi.use({prepare: function(result) { return expect(result); } });
@@ -88,3 +88,11 @@ expect(function() {
   .then(function() { expect(this).to.equal(ctx); })
   .done();
 }).not.to.throw();
+
+
+// adding named tests
+zucchi.given(zucchi.given)
+  // support `when`
+  .when(function(given) { return given(square); })
+  .then(function(expect) { expect.itself.to.respondTo("suppose"); })
+  .done()
