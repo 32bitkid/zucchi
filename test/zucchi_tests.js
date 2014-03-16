@@ -29,70 +29,9 @@ zucchi.given(zucchi.given)
   .when(function(given) { return given(square); })
   .then(function(expect) { expect.itself.to.respondTo("using") })
 
-  .done();
+  .done(true);
 
-// basic usage
-expect(function() {
-  zucchi.given(square)
-  
-  // squaring one
-  .when(1).then(1)
-  
-  // squaring two
-  .when(2)
-  .then(function(e) { e.is.greaterThan(3) })
-  .and(function(e) { e.is.lessThan(5); })
-  
-  .done();
-}).not.to.throw();
+var square = zucchi.given(function(x) { return x*x; })
+  .when(3).then(4);
 
-// failures should throw
-
-// basic usage
-expect(function() {
-  zucchi.given(square)
-  .when(1).then(2)
-  .done();
-}).to.throw();
-
-
-// basic usage
-expect(function() {
-  zucchi.given(square)
-  .when(1).then(function(expect) { expect.not.to.equal(1); })
-  .done();
-}).to.throw();
-
-// prototype test
-expect(function() {
-  var Klass = function(val) { this.val = val; }
-  Klass.prototype.square = zucchi.given(function() { return this.val*this.val; })
-  .using(function() { return { val:2 }; })
-  .when().then(4)
-  .done();
-}).not.to.throw();
-
-// multiple args
-expect(function() {
-  zucchi.given(function(x,y) { return x + y; })
-  .when(1,2).then(3)
-  .done();
-}).not.to.throw();
-
-// using should establish context for `when` and `then`
-expect(function() {
-  var ctx = {};
-  zucchi.given(function() {})
-  .using(function() { return ctx; })
-  .when(function() { expect(this).to.equal(ctx); })
-  .then(function() { expect(this).to.equal(ctx); })
-  .done();
-}).not.to.throw();
-
-
-// adding named tests
-zucchi.given(zucchi.given)
-  // support `when`
-  .when(function(given) { return given(square); })
-  .then(function(expect) { expect.itself.to.respondTo("suppose"); })
-  .done()
+square(2);

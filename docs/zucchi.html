@@ -45,6 +45,48 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
+              <p>Reporters </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> reporters = {
+    silent: { 
+      onSuccess: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span> },
+      onFailure: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span> },
+      exceptionFormatter: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ex)</span> {</span> <span class="hljs-keyword">return</span> ex.stack; },
+      onResults: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(p, f, failures)</span> {</span> <span class="hljs-keyword">throw</span> failures; }
+    },
+    console: {
+      onSuccess: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span> process.stdout.write(<span class="hljs-string">"."</span>); },
+      onFailure: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span> process.stdout.write(<span class="hljs-string">"F"</span>); },
+      exceptionFormatter: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ex)</span> {</span> <span class="hljs-keyword">return</span> ex.stack; },
+      onResults: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(passed, failed, failures)</span> {</span>
+        process.stdout.write(<span class="hljs-string">"\n"</span>);
+        <span class="hljs-keyword">if</span>(failed) {
+          process.stdout.write(<span class="hljs-string">"\n-----------\n"</span>);
+          console.log(failures.join(<span class="hljs-string">"\n"</span>));
+        }
+        
+        <span class="hljs-keyword">var</span> results = [passed + <span class="hljs-string">" passed"</span>, failed + <span class="hljs-string">" failed"</span>];
+        
+        console.log(results.join(<span class="hljs-string">", "</span>));
+        
+        <span class="hljs-keyword">if</span>(failed) {
+          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(failed + <span class="hljs-string">" tests failed!"</span>);
+        }
+      }
+    }
+  };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
               <p>Helpers</p>
 
             </div>
@@ -55,11 +97,11 @@
         </li>
         
         
-        <li id="section-3">
+        <li id="section-4">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
+                <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
               <p>Shim for Function.prototype.bind</p>
 
@@ -83,11 +125,11 @@
         </li>
         
         
-        <li id="section-4">
+        <li id="section-5">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
               <p>Extend a given object with all the properties in passed-in object(s).</p>
 
@@ -105,11 +147,11 @@
         </li>
         
         
-        <li id="section-5">
+        <li id="section-6">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <p>Functional curry</p>
 
@@ -142,11 +184,11 @@
         </li>
         
         
-        <li id="section-6">
+        <li id="section-7">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <p>Result Wrapper</p>
 
@@ -182,31 +224,43 @@
   });
   
   <span class="hljs-keyword">var</span> given = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(fn)</span> {</span>
-    <span class="hljs-keyword">var</span> steps = [];
+    <span class="hljs-keyword">var</span> steps = [], tested = <span class="hljs-literal">false</span>;
     
     <span class="hljs-keyword">var</span> wrapper = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      <span class="hljs-keyword">if</span>(!tested) done(<span class="hljs-literal">true</span>);
       <span class="hljs-keyword">return</span> fn.apply(<span class="hljs-keyword">this</span>, <span class="hljs-built_in">arguments</span>);
     };
     
     <span class="hljs-keyword">var</span> state = addAssertion(wrapper)(steps);
     
-    wrapper.done = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    <span class="hljs-keyword">var</span> done = wrapper.done = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(immediate)</span> {</span>
       <span class="hljs-keyword">var</span> eachStep = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(step)</span> {</span>
         <span class="hljs-keyword">var</span> stepFn = fn, context;
         
-        <span class="hljs-keyword">if</span>(step.ctx) {
-          context = step.ctx();
-          stepFn = bind.call(fn, context);
+        <span class="hljs-keyword">try</span> {
+          <span class="hljs-keyword">if</span>(step.ctx) {
+            context = step.ctx();
+            stepFn = bind.call(fn, context);
+          }
+        
+          <span class="hljs-keyword">var</span> actual = step.actual.call(context, stepFn);
+          step.expected.call(context, options.prepare(actual));
+          options.reporter.onSuccess();
+          passed.push(<span class="hljs-literal">true</span>);
+        } <span class="hljs-keyword">catch</span> (ex) {
+          failed.push(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(ex));
+          options.reporter.onFailure();
         }
-
-        <span class="hljs-keyword">var</span> actual = step.actual.call(context, stepFn);
-        step.expected.call(context, options.prepare(actual));
       };
       
       options.before.call();
       forEach(steps, options.each(eachStep));
       options.after.call();
       
+      
+      <span class="hljs-keyword">if</span>(immediate) results();
+      
+      tested = <span class="hljs-literal">true</span>;
       <span class="hljs-keyword">return</span> fn;
     };
     
@@ -242,11 +296,11 @@
         </li>
         
         
-        <li id="section-7">
+        <li id="section-8">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>Defaults</p>
 
@@ -256,7 +310,8 @@
     simpleThen: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(actual, expected)</span> {</span> actual.equals(expected); },
     each: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(testcase)</span> {</span> <span class="hljs-keyword">return</span> testcase; },
     before: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span> <span class="hljs-comment">/* noop */</span> },
-    after: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span> <span class="hljs-comment">/* noop */</span> }
+    after: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span> <span class="hljs-comment">/* noop */</span> },
+    reporter: reporters.console
   };
   
   <span class="hljs-keyword">var</span> createSession = (<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
@@ -291,6 +346,18 @@
     };
   })();
   
+  <span class="hljs-keyword">var</span> passed = [], failed = [],
+      reset = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+        failed.length = <span class="hljs-number">0</span>;
+        passed.length = <span class="hljs-number">0</span>;
+      },
+      results = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+        <span class="hljs-keyword">var</span> passedCount = passed.length, failedCount = failed.length;
+        <span class="hljs-keyword">var</span> formattedFailures = failed.map(options.reporter.exceptionFormatter);
+        reset();
+        options.reporter.onResults(passedCount, failedCount, formattedFailures);
+      };
+  
   
   <span class="hljs-keyword">var</span> options = defaultOptions;
   
@@ -300,8 +367,11 @@
       use: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
         options = extend.apply(<span class="hljs-literal">undefined</span>, [{}, defaultOptions].concat(slice.call(<span class="hljs-built_in">arguments</span>))); 
       },
+      reporters: reporters,
+      results: results,
+      reset: reset,
       createSession: createSession,
-      version: <span class="hljs-string">"0.0.1"</span>
+      version: <span class="hljs-string">"0.0.2"</span>
     };
   });
 })(<span class="hljs-keyword">this</span>);</pre></div></div>

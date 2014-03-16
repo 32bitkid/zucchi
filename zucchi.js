@@ -4,7 +4,36 @@
     : typeof(module) !== "undefined" ? function(m) { module.exports = m(); }
     : function(m) { ctx.zucchi = m(); };
 
-
+  // Reporters 
+  var reporters = {
+    silent: { 
+      onSuccess: function() { },
+      onFailure: function() { },
+      exceptionFormatter: function(ex) { return ex.stack; },
+      onResults: function(p, f, failures) { throw failures; }
+    },
+    console: {
+      onSuccess: function() { process.stdout.write("."); },
+      onFailure: function() { process.stdout.write("F"); },
+      exceptionFormatter: function(ex) { return ex.stack; },
+      onResults: function(passed, failed, failures) {
+        process.stdout.write("\n");
+        if(failed) {
+          process.stdout.write("\n-----------\n");
+          console.log(failures.join("\n"));
+        }
+        
+        var results = [passed + " passed", failed + " failed"];
+        
+        console.log(results.join(", "));
+        
+        if(failed) {
+          throw new Error(failed + " tests failed!");
+        }
+      }
+    }
+  };
+  
   // Helpers
 
   var slice = Array.prototype.slice,
@@ -91,31 +120,43 @@
   });
   
   var given = function(fn) {
-    var steps = [];
+    var steps = [], tested = false;
     
     var wrapper = function() {
+      if(!tested) done(true);
       return fn.apply(this, arguments);
     };
     
     var state = addAssertion(wrapper)(steps);
     
-    wrapper.done = function() {
+    var done = wrapper.done = function(immediate) {
       var eachStep = function(step) {
         var stepFn = fn, context;
         
-        if(step.ctx) {
-          context = step.ctx();
-          stepFn = bind.call(fn, context);
+        try {
+          if(step.ctx) {
+            context = step.ctx();
+            stepFn = bind.call(fn, context);
+          }
+        
+          var actual = step.actual.call(context, stepFn);
+          step.expected.call(context, options.prepare(actual));
+          options.reporter.onSuccess();
+          passed.push(true);
+        } catch (ex) {
+          failed.push(new Error(ex));
+          options.reporter.onFailure();
         }
-
-        var actual = step.actual.call(context, stepFn);
-        step.expected.call(context, options.prepare(actual));
       };
       
       options.before.call();
       forEach(steps, options.each(eachStep));
       options.after.call();
       
+      
+      if(immediate) results();
+      
+      tested = true;
       return fn;
     };
     
@@ -152,7 +193,8 @@
     simpleThen: function(actual, expected) { actual.equals(expected); },
     each: function (testcase) { return testcase; },
     before: function() { /* noop */ },
-    after: function() { /* noop */ }
+    after: function() { /* noop */ },
+    reporter: reporters.console
   };
   
   var createSession = (function() {
@@ -187,6 +229,18 @@
     };
   })();
   
+  var passed = [], failed = [],
+      reset = function() {
+        failed.length = 0;
+        passed.length = 0;
+      },
+      results = function() {
+        var passedCount = passed.length, failedCount = failed.length;
+        var formattedFailures = failed.map(options.reporter.exceptionFormatter);
+        reset();
+        options.reporter.onResults(passedCount, failedCount, formattedFailures);
+      };
+  
   
   var options = defaultOptions;
   
@@ -196,8 +250,11 @@
       use: function() {
         options = extend.apply(undefined, [{}, defaultOptions].concat(slice.call(arguments))); 
       },
+      reporters: reporters,
+      results: results,
+      reset: reset,
       createSession: createSession,
-      version: "0.0.1"
+      version: "0.0.2"
     };
   });
 })(this);
